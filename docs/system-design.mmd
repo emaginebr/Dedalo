@@ -1,0 +1,74 @@
+%% Diagram: Dedalo CMS System Architecture
+%% Type: Flowchart
+%% Generated: 2026-03-29
+
+flowchart TD
+    client([Client / Browser])
+
+    subgraph api["Dedalo.API"]
+        middleware["TenantMiddleware\n(X-Tenant-Id header)"]
+        auth["NAuth Authentication\n(Bearer Token + JWT)"]
+        controllers["Controllers\n(Website, Page, Menu,\nContent, Image)"]
+        filters["GlobalExceptionFilter"]
+        swagger["Swagger / OpenAPI"]
+    end
+
+    subgraph app["Dedalo.Application"]
+        di["DI Bootstrap\n(ConfigureDedalo)"]
+        tenant_resolver["TenantResolver\n(ConnectionString, JWT,\nBucketName per tenant)"]
+        tenant_context["TenantContext\n(HttpContext Items)"]
+        db_factory["TenantDbContextFactory\n(Dynamic DbContext)"]
+    end
+
+    subgraph domain["Dedalo.Domain"]
+        services["Services\n(Website, Page, Menu, Content)"]
+        models["Models\n(WebsiteModel, PageModel,\nMenuModel, ContentModel)"]
+        interfaces["Interfaces\n(IWebsiteService, IPageService,\nIMenuService, IContentService)"]
+    end
+
+    subgraph infra["Dedalo.Infra"]
+        context["DedaloContext\n(EF Core 9)"]
+        repos["Repositories\n(Website, Page, Menu, Content)"]
+        mappers["AutoMapper Profiles\n(Entity ↔ Model ↔ DTO)"]
+        migrations["Migrations"]
+    end
+
+    subgraph dto["Dedalo.DTO"]
+        dtos["DTOs\n(Info, InsertInfo, UpdateInfo)\nEnums (DomainType, Status, LinkType)"]
+    end
+
+    subgraph external["External Services"]
+        nauth["NAuth\n(Authentication\n+ User Session)"]
+        ztools["zTools\n(File Upload, AI,\nEmail, Documents)"]
+    end
+
+    subgraph databases["PostgreSQL (Multi-Tenant)"]
+        db_tenant1[(Tenant: emagine\nDatabase)]
+        db_tenant2[(Tenant: monexup\nDatabase)]
+    end
+
+    client -->|"REST API\n+ X-Tenant-Id"| middleware
+    middleware -->|"extracts tenant"| auth
+    auth -->|"validates JWT"| controllers
+    controllers -->|"uses"| services
+    di -->|"registers"| services
+    di -->|"registers"| repos
+    services -->|"business logic"| models
+    services -->|"maps via"| mappers
+    services -->|"uses"| repos
+    repos -->|"queries"| context
+    tenant_resolver -->|"resolves config"| db_factory
+    tenant_context -->|"provides tenantId"| tenant_resolver
+    db_factory -->|"creates"| context
+    context -->|"Npgsql"| db_tenant1
+    context -->|"Npgsql"| db_tenant2
+    controllers -->|"auth validation"| nauth
+    controllers -->|"file upload"| ztools
+
+    style api fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    style app fill:#7B68EE,stroke:#5A4CBE,color:#fff
+    style domain fill:#50C878,stroke:#3A9A5C,color:#fff
+    style infra fill:#CD853F,stroke:#A0682F,color:#fff
+    style dto fill:#FF8C00,stroke:#CC7000,color:#fff
+    style external fill:#FF6B6B,stroke:#CC5555,color:#fff
+    style databases fill:#336791,stroke:#264D6E,color:#fff
