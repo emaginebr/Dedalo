@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/website/domain/meudominio.com.br
+  url: {{baseUrl}}/website/domain/localhost
   body: none
   auth: none
+}
+
+headers {
+  X-Tenant-Id: emagine
 }

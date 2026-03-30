@@ -5,6 +5,7 @@ using Dedalo.Domain.Interfaces;
 using Dedalo.DTO.Page;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Dedalo.Domain.Services
@@ -31,19 +32,15 @@ namespace Dedalo.Domain.Services
             return await _pageRepository.GetByIdAsync(pageId);
         }
 
-        public async Task<PageModel> GetBySlugAsync(string pageSlug, string websiteSlug, string domain)
+        public async Task<PageModel?> GetBySlugAsync(string pageSlug, string websiteSlug, string domain)
         {
-            if (string.IsNullOrWhiteSpace(pageSlug))
-                throw new Exception("Page slug is required");
-
             if (string.IsNullOrWhiteSpace(websiteSlug) && string.IsNullOrWhiteSpace(domain))
-                throw new Exception("Website slug or domain is required");
+                return null;
 
-            var model = await _pageRepository.GetBySlugAsync(pageSlug, websiteSlug, domain);
-            if (model == null)
-                throw new Exception("Page not found");
+            if (string.IsNullOrWhiteSpace(pageSlug))
+                pageSlug = "home";
 
-            return model;
+            return await _pageRepository.GetBySlugAsync(pageSlug, websiteSlug, domain);
         }
 
         public async Task<IEnumerable<PageModel>> ListByWebsiteAsync(long websiteId)
@@ -54,7 +51,7 @@ namespace Dedalo.Domain.Services
         public async Task<IEnumerable<PageModel>> ListPublicAsync(string websiteSlug, string domain)
         {
             if (string.IsNullOrWhiteSpace(websiteSlug) && string.IsNullOrWhiteSpace(domain))
-                throw new Exception("Website slug or domain is required");
+                return Enumerable.Empty<PageModel>();
 
             return await _pageRepository.ListByWebsiteSlugOrDomainAsync(websiteSlug, domain);
         }

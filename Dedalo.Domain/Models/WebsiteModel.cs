@@ -16,6 +16,7 @@ namespace Dedalo.Domain.Models
         public DomainTypeEnum DomainType { get; set; }
         public string CustomDomain { get; set; }
         public string LogoUrl { get; set; }
+        public string Css { get; set; }
         public WebsiteStatusEnum Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

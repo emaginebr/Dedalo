@@ -12,5 +12,7 @@ namespace Dedalo.DTO.Website
         public DomainTypeEnum DomainType { get; set; }
         [JsonPropertyName("customDomain")]
         public string CustomDomain { get; set; }
+        [JsonPropertyName("css")]
+        public string? Css { get; set; }
     }
 }

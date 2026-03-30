@@ -43,6 +43,8 @@ namespace Dedalo.API.Controllers
         public async Task<IActionResult> GetBySlug(string pageSlug, [FromQuery] string websiteSlug, [FromQuery] string domain)
         {
             var model = await _pageService.GetBySlugAsync(pageSlug, websiteSlug, domain);
+            if (model == null)
+                return Ok(null);
             return Ok(_mapper.Map<PagePublicInfo>(model));
         }
 

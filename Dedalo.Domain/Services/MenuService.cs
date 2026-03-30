@@ -5,6 +5,7 @@ using Dedalo.Domain.Interfaces;
 using Dedalo.DTO.Menu;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Dedalo.Domain.Services
@@ -39,7 +40,7 @@ namespace Dedalo.Domain.Services
         public async Task<IEnumerable<MenuModel>> ListPublicAsync(string websiteSlug, string domain)
         {
             if (string.IsNullOrWhiteSpace(websiteSlug) && string.IsNullOrWhiteSpace(domain))
-                throw new Exception("Website slug or domain is required");
+                return Enumerable.Empty<MenuModel>();
 
             return await _menuRepository.ListByWebsiteSlugOrDomainAsync(websiteSlug, domain);
         }

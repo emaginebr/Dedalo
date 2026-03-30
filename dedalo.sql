@@ -13,6 +13,7 @@ CREATE TABLE dedalo_websites (
     domain_type INTEGER NOT NULL DEFAULT 1,
     custom_domain VARCHAR(240),
     logo_url VARCHAR(500),
+    css TEXT,
     status INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,

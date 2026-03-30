@@ -78,15 +78,19 @@ namespace Dedalo.Tests.Domain.Services
         }
 
         [Fact]
-        public async Task ListPublicAsync_Throws_WhenPageSlugEmpty()
+        public async Task ListPublicAsync_ReturnsEmpty_WhenPageSlugEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.ListPublicAsync("", "my-site", null));
+            var result = await _service.ListPublicAsync("", "my-site", null);
+
+            Assert.Empty(result);
         }
 
         [Fact]
-        public async Task ListPublicAsync_Throws_WhenBothWebsiteSlugAndDomainEmpty()
+        public async Task ListPublicAsync_ReturnsEmpty_WhenBothWebsiteSlugAndDomainEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.ListPublicAsync("about", "", ""));
+            var result = await _service.ListPublicAsync("about", "", "");
+
+            Assert.Empty(result);
         }
 
         // -- InsertAsync --

@@ -65,23 +65,33 @@ namespace Dedalo.Tests.Domain.Services
         }
 
         [Fact]
-        public async Task GetBySlugAsync_Throws_WhenPageSlugEmpty()
+        public async Task GetBySlugAsync_FallsBackToHome_WhenPageSlugEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.GetBySlugAsync("", "my-site", null));
+            var model = new PageModel { PageId = 1, PageSlug = "home", WebsiteId = 1 };
+            _pageRepository.Setup(r => r.GetBySlugAsync("home", "my-site", null)).ReturnsAsync(model);
+
+            var result = await _service.GetBySlugAsync("", "my-site", null);
+
+            Assert.NotNull(result);
+            Assert.Equal("home", result.PageSlug);
         }
 
         [Fact]
-        public async Task GetBySlugAsync_Throws_WhenBothWebsiteSlugAndDomainEmpty()
+        public async Task GetBySlugAsync_ReturnsNull_WhenBothWebsiteSlugAndDomainEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.GetBySlugAsync("about", "", ""));
+            var result = await _service.GetBySlugAsync("about", "", "");
+
+            Assert.Null(result);
         }
 
         [Fact]
-        public async Task GetBySlugAsync_Throws_WhenNotFound()
+        public async Task GetBySlugAsync_ReturnsNull_WhenNotFound()
         {
             _pageRepository.Setup(r => r.GetBySlugAsync("unknown", "my-site", null)).ReturnsAsync((PageModel)null);
 
-            await Assert.ThrowsAsync<Exception>(() => _service.GetBySlugAsync("unknown", "my-site", null));
+            var result = await _service.GetBySlugAsync("unknown", "my-site", null);
+
+            Assert.Null(result);
         }
 
         // -- ListByWebsiteAsync --

@@ -56,6 +56,8 @@ public partial class DedaloContext : DbContext
             entity.Property(e => e.LogoUrl)
                 .HasMaxLength(500)
                 .HasColumnName("logo_url");
+            entity.Property(e => e.Css)
+                .HasColumnName("css");
             entity.Property(e => e.Status)
                 .HasDefaultValue(1)
                 .HasColumnName("status");

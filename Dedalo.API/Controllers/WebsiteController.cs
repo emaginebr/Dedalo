@@ -53,6 +53,8 @@ namespace Dedalo.API.Controllers
         public async Task<IActionResult> GetBySlug(string slug)
         {
             var model = await _websiteService.GetBySlugAsync(slug);
+            if (model == null)
+                return Ok(null);
             return Ok(_mapper.Map<WebsiteInfo>(model));
         }
 
@@ -61,6 +63,8 @@ namespace Dedalo.API.Controllers
         public async Task<IActionResult> GetByDomain(string domain)
         {
             var model = await _websiteService.GetByDomainAsync(domain);
+            if (model == null)
+                return Ok(null);
             return Ok(_mapper.Map<WebsiteInfo>(model));
         }
 

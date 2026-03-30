@@ -8,8 +8,8 @@ namespace Dedalo.Domain.Interfaces
     public interface IWebsiteService
     {
         Task<WebsiteModel> GetByIdAsync(long websiteId, long userId);
-        Task<WebsiteModel> GetBySlugAsync(string slug);
-        Task<WebsiteModel> GetByDomainAsync(string domain);
+        Task<WebsiteModel?> GetBySlugAsync(string slug);
+        Task<WebsiteModel?> GetByDomainAsync(string domain);
         Task<IEnumerable<WebsiteModel>> ListByUserAsync(long userId);
         Task<WebsiteModel> InsertAsync(WebsiteInsertInfo website, long userId);
         Task<WebsiteModel> UpdateAsync(WebsiteUpdateInfo website, long userId);

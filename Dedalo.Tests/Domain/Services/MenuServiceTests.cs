@@ -78,9 +78,11 @@ namespace Dedalo.Tests.Domain.Services
         }
 
         [Fact]
-        public async Task ListPublicAsync_Throws_WhenBothEmpty()
+        public async Task ListPublicAsync_ReturnsEmpty_WhenBothEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.ListPublicAsync("", ""));
+            var result = await _service.ListPublicAsync("", "");
+
+            Assert.Empty(result);
         }
 
         // -- InsertAsync --

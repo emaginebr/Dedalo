@@ -12,14 +12,17 @@ namespace Dedalo.Domain.Services
     public class WebsiteService : IWebsiteService
     {
         private readonly IWebsiteRepository<WebsiteModel> _websiteRepository;
+        private readonly IPageRepository<PageModel> _pageRepository;
         private readonly IMapper _mapper;
 
         public WebsiteService(
             IWebsiteRepository<WebsiteModel> websiteRepository,
+            IPageRepository<PageModel> pageRepository,
             IMapper mapper
         )
         {
             _websiteRepository = websiteRepository;
+            _pageRepository = pageRepository;
             _mapper = mapper;
         }
 
@@ -33,26 +36,22 @@ namespace Dedalo.Domain.Services
             return model;
         }
 
-        public async Task<WebsiteModel> GetBySlugAsync(string slug)
+        public async Task<WebsiteModel?> GetBySlugAsync(string slug)
         {
             if (string.IsNullOrWhiteSpace(slug))
-                throw new Exception("Slug is required");
+                return null;
 
-            var model = await _websiteRepository.GetBySlugAsync(slug);
-            if (model == null)
-                throw new Exception("Website not found for the provided slug");
-
-            return model;
+            return await _websiteRepository.GetBySlugAsync(slug);
         }
 
-        public async Task<WebsiteModel> GetByDomainAsync(string domain)
+        public async Task<WebsiteModel?> GetByDomainAsync(string domain)
         {
             if (string.IsNullOrWhiteSpace(domain))
-                throw new Exception("Domain is required");
+                return null;
 
             var model = await _websiteRepository.GetByDomainAsync(domain);
-            if (model == null)
-                throw new Exception("Website not found for the provided domain");
+            if (model == null || model.DomainType != DomainTypeEnum.CustomDomain)
+                return null;
 
             return model;
         }
@@ -73,7 +72,18 @@ namespace Dedalo.Domain.Services
             await ValidateSlugUniqueAsync(model.WebsiteSlug);
             await ValidateDomainUniqueAsync(model.CustomDomain);
 
-            return await _websiteRepository.InsertAsync(model);
+            var created = await _websiteRepository.InsertAsync(model);
+
+            var homePage = new PageModel
+            {
+                WebsiteId = created.WebsiteId,
+                PageSlug = "home",
+                Name = "Home"
+            };
+            homePage.MarkCreated();
+            await _pageRepository.InsertAsync(homePage);
+
+            return created;
         }
 
         public async Task<WebsiteModel> UpdateAsync(WebsiteUpdateInfo website, long userId)

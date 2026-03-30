@@ -95,10 +95,10 @@ namespace Dedalo.Domain.Services
         public async Task<IEnumerable<ContentModel>> ListPublicAsync(string pageSlug, string websiteSlug, string domain)
         {
             if (string.IsNullOrWhiteSpace(pageSlug))
-                throw new Exception("Page slug is required");
+                return Enumerable.Empty<ContentModel>();
 
             if (string.IsNullOrWhiteSpace(websiteSlug) && string.IsNullOrWhiteSpace(domain))
-                throw new Exception("Website slug or domain is required");
+                return Enumerable.Empty<ContentModel>();
 
             return await _contentRepository.ListByPageSlugAsync(pageSlug, websiteSlug, domain);
         }

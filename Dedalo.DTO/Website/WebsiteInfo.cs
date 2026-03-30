@@ -21,6 +21,8 @@ namespace Dedalo.DTO.Website
         public string CustomDomain { get; set; }
         [JsonPropertyName("logoUrl")]
         public string LogoUrl { get; set; }
+        [JsonPropertyName("css")]
+        public string Css { get; set; }
         [JsonPropertyName("status")]
         public WebsiteStatusEnum Status { get; set; }
         [JsonPropertyName("createdAt")]

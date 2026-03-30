@@ -15,14 +15,16 @@ namespace Dedalo.Tests.Domain.Services
     public class WebsiteServiceTests
     {
         private readonly Mock<IWebsiteRepository<WebsiteModel>> _websiteRepository;
+        private readonly Mock<IPageRepository<PageModel>> _pageRepository;
         private readonly Mock<IMapper> _mapper;
         private readonly WebsiteService _service;
 
         public WebsiteServiceTests()
         {
             _websiteRepository = new Mock<IWebsiteRepository<WebsiteModel>>();
+            _pageRepository = new Mock<IPageRepository<PageModel>>();
             _mapper = new Mock<IMapper>();
-            _service = new WebsiteService(_websiteRepository.Object, _mapper.Object);
+            _service = new WebsiteService(_websiteRepository.Object, _pageRepository.Object, _mapper.Object);
         }
 
         // -- GetByIdAsync --
@@ -72,17 +74,21 @@ namespace Dedalo.Tests.Domain.Services
         }
 
         [Fact]
-        public async Task GetBySlugAsync_Throws_WhenSlugEmpty()
+        public async Task GetBySlugAsync_ReturnsNull_WhenSlugEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.GetBySlugAsync(""));
+            var result = await _service.GetBySlugAsync("");
+
+            Assert.Null(result);
         }
 
         [Fact]
-        public async Task GetBySlugAsync_Throws_WhenNotFound()
+        public async Task GetBySlugAsync_ReturnsNull_WhenNotFound()
         {
             _websiteRepository.Setup(r => r.GetBySlugAsync("unknown")).ReturnsAsync((WebsiteModel)null);
 
-            await Assert.ThrowsAsync<Exception>(() => _service.GetBySlugAsync("unknown"));
+            var result = await _service.GetBySlugAsync("unknown");
+
+            Assert.Null(result);
         }
 
         // -- GetByDomainAsync --
@@ -90,7 +96,7 @@ namespace Dedalo.Tests.Domain.Services
         [Fact]
         public async Task GetByDomainAsync_ReturnsModel_WhenFound()
         {
-            var model = new WebsiteModel { WebsiteId = 1, CustomDomain = "site.com" };
+            var model = new WebsiteModel { WebsiteId = 1, CustomDomain = "site.com", DomainType = DomainTypeEnum.CustomDomain };
             _websiteRepository.Setup(r => r.GetByDomainAsync("site.com")).ReturnsAsync(model);
 
             var result = await _service.GetByDomainAsync("site.com");
@@ -99,17 +105,21 @@ namespace Dedalo.Tests.Domain.Services
         }
 
         [Fact]
-        public async Task GetByDomainAsync_Throws_WhenDomainEmpty()
+        public async Task GetByDomainAsync_ReturnsNull_WhenDomainEmpty()
         {
-            await Assert.ThrowsAsync<Exception>(() => _service.GetByDomainAsync(""));
+            var result = await _service.GetByDomainAsync("");
+
+            Assert.Null(result);
         }
 
         [Fact]
-        public async Task GetByDomainAsync_Throws_WhenNotFound()
+        public async Task GetByDomainAsync_ReturnsNull_WhenNotFound()
         {
             _websiteRepository.Setup(r => r.GetByDomainAsync("unknown.com")).ReturnsAsync((WebsiteModel)null);
 
-            await Assert.ThrowsAsync<Exception>(() => _service.GetByDomainAsync("unknown.com"));
+            var result = await _service.GetByDomainAsync("unknown.com");
+
+            Assert.Null(result);
         }
 
         // -- ListByUserAsync --
@@ -136,6 +146,8 @@ namespace Dedalo.Tests.Domain.Services
             _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
             _websiteRepository.Setup(r => r.InsertAsync(It.IsAny<WebsiteModel>()))
                 .ReturnsAsync((WebsiteModel m) => { m.WebsiteId = 1; return m; });
+            _pageRepository.Setup(r => r.InsertAsync(It.IsAny<PageModel>()))
+                .ReturnsAsync((PageModel p) => p);
 
             var result = await _service.InsertAsync(dto, 10);
 
@@ -143,6 +155,9 @@ namespace Dedalo.Tests.Domain.Services
             Assert.Equal(WebsiteStatusEnum.Active, result.Status);
             Assert.Equal(1, result.WebsiteId);
             Assert.Equal("my-site", result.WebsiteSlug);
+            _pageRepository.Verify(r => r.InsertAsync(It.Is<PageModel>(p =>
+                p.WebsiteId == 1 && p.PageSlug == "home" && p.Name == "Home"
+            )), Times.Once);
         }
 
         // -- UpdateAsync --
@@ -252,6 +267,8 @@ namespace Dedalo.Tests.Domain.Services
             _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
             _websiteRepository.Setup(r => r.InsertAsync(It.IsAny<WebsiteModel>()))
                 .ReturnsAsync((WebsiteModel m) => { m.WebsiteId = 1; return m; });
+            _pageRepository.Setup(r => r.InsertAsync(It.IsAny<PageModel>()))
+                .ReturnsAsync((PageModel p) => p);
 
             var result = await _service.InsertAsync(dto, 10);
 

@@ -21,6 +21,8 @@ public partial class Website
 
     public string LogoUrl { get; set; }
 
+    public string Css { get; set; }
+
     public int Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
