@@ -73,6 +73,21 @@ namespace Dedalo.Infra.Repository
             return rows.Select(r => _mapper.Map<PageModel>(r));
         }
 
+        public async Task<IEnumerable<PageModel>> ListByWebsiteSlugOrDomainAsync(string websiteSlug, string domain)
+        {
+            var query = _context.Pages
+                .Include(p => p.Website)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(domain))
+                query = query.Where(p => p.Website.CustomDomain == domain);
+            else
+                query = query.Where(p => p.Website.WebsiteSlug == websiteSlug);
+
+            var rows = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
+            return rows.Select(r => _mapper.Map<PageModel>(r));
+        }
+
         public async Task DeleteAsync(long id)
         {
             var row = await _context.Pages.FindAsync(id);

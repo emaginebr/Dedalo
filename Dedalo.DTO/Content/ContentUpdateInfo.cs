@@ -7,7 +7,7 @@ namespace Dedalo.DTO.Content
         [JsonPropertyName("contentId")]
         public long ContentId { get; set; }
         [JsonPropertyName("contentType")]
-        public int ContentType { get; set; }
+        public string ContentType { get; set; }
         [JsonPropertyName("index")]
         public int Index { get; set; }
         [JsonPropertyName("contentSlug")]

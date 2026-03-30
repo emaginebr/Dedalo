@@ -53,7 +53,7 @@ namespace Dedalo.Tests.Domain.Mappers
         {
             var dto = new WebsiteInsertInfo
             {
-                WebsiteSlug = "slug", Name = "Site",
+                Name = "Site",
                 DomainType = DomainTypeEnum.Subdomain, CustomDomain = "site.com"
             };
 
@@ -61,7 +61,7 @@ namespace Dedalo.Tests.Domain.Mappers
 
             Assert.Equal(0, model.WebsiteId);
             Assert.Equal(0, model.UserId);
-            Assert.Equal("slug", model.WebsiteSlug);
+            Assert.Null(model.WebsiteSlug);
             Assert.Equal(DomainTypeEnum.Subdomain, model.DomainType);
         }
 

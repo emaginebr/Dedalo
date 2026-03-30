@@ -1,0 +1,19 @@
+meta {
+  name: List Websites
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/website
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:5000
+}

@@ -39,8 +39,10 @@ namespace Dedalo.Infra.Migrations
                         .HasColumnType("character varying(240)")
                         .HasColumnName("content_slug");
 
-                    b.Property<int>("ContentType")
-                        .HasColumnType("integer")
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("content_type");
 
                     b.Property<string>("ContentValue")
@@ -245,6 +247,11 @@ namespace Dedalo.Infra.Migrations
 
                     b.HasKey("WebsiteId")
                         .HasName("dedalo_websites_pkey");
+
+                    b.HasIndex("CustomDomain")
+                        .IsUnique()
+                        .HasDatabaseName("ix_dedalo_websites_custom_domain")
+                        .HasFilter("custom_domain IS NOT NULL AND custom_domain <> ''");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_dedalo_websites_user_id");

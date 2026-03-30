@@ -1,0 +1,24 @@
+meta {
+  name: Create Website
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/website
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+body:json {
+  {
+    "templateSlug": "default",
+    "name": "Meu Site",
+    "domainType": 1,
+    "customDomain": ""
+  }
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Update Menu
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/website/{{websiteId}}/menu/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "parentId": null,
+    "name": "Home Page",
+    "linkType": 3,
+    "externalLink": "",
+    "pageId": 1
+  }
+}

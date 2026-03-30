@@ -1,0 +1,11 @@
+meta {
+  name: Delete Page
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/website/{{websiteId}}/page/{{pageId}}
+  body: none
+  auth: inherit
+}

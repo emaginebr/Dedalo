@@ -14,6 +14,5 @@ namespace Dedalo.Domain.Interfaces
         Task<WebsiteModel> InsertAsync(WebsiteInsertInfo website, long userId);
         Task<WebsiteModel> UpdateAsync(WebsiteUpdateInfo website, long userId);
         Task UpdateLogoAsync(long websiteId, string logoUrl, long userId);
-        Task DeleteAsync(long websiteId, long userId);
     }
 }

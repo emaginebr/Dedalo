@@ -12,6 +12,5 @@ namespace Dedalo.Infra.Interfaces.Repository
         Task<TModel> InsertAsync(TModel model);
         Task<TModel> UpdateAsync(TModel model);
         Task UpdateLogoAsync(long id, string logoUrl);
-        Task DeleteAsync(long id);
     }
 }

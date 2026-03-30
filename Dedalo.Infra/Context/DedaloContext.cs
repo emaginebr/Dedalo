@@ -66,6 +66,11 @@ public partial class DedaloContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");
 
+            entity.HasIndex(e => e.CustomDomain)
+                .IsUnique()
+                .HasDatabaseName("ix_dedalo_websites_custom_domain")
+                .HasFilter("custom_domain IS NOT NULL AND custom_domain <> ''");
+
             entity.HasIndex(e => e.UserId)
                 .HasDatabaseName("ix_dedalo_websites_user_id");
         });
@@ -154,7 +159,10 @@ public partial class DedaloContext : DbContext
             entity.Property(e => e.ContentId).HasColumnName("content_id");
             entity.Property(e => e.WebsiteId).HasColumnName("website_id");
             entity.Property(e => e.PageId).HasColumnName("page_id");
-            entity.Property(e => e.ContentType).HasColumnName("content_type");
+            entity.Property(e => e.ContentType)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("content_type");
             entity.Property(e => e.Index)
                 .HasDefaultValue(0)
                 .HasColumnName("index");

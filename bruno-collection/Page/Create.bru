@@ -1,0 +1,27 @@
+meta {
+  name: Create Page
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/website/{{websiteId}}/page
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+body:json {
+  {
+    "pageSlug": "about",
+    "templatePageSlug": "default",
+    "name": "About"
+  }
+}
+
+vars:pre-request {
+  websiteId: 1
+}

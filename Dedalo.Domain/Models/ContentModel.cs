@@ -7,7 +7,7 @@ namespace Dedalo.Domain.Models
         public long ContentId { get; set; }
         public long WebsiteId { get; set; }
         public long PageId { get; set; }
-        public int ContentType { get; set; }
+        public string ContentType { get; set; }
         public int Index { get; set; }
         public string ContentSlug { get; set; }
         public string ContentValue { get; set; }

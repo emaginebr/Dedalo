@@ -4,8 +4,6 @@ namespace Dedalo.DTO.Website
 {
     public class WebsiteInsertInfo
     {
-        [JsonPropertyName("websiteSlug")]
-        public string WebsiteSlug { get; set; }
         [JsonPropertyName("templateSlug")]
         public string TemplateSlug { get; set; }
         [JsonPropertyName("name")]

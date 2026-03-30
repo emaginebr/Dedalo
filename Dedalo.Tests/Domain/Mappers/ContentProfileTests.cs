@@ -22,7 +22,7 @@ namespace Dedalo.Tests.Domain.Mappers
             var entity = new Content
             {
                 ContentId = 1, WebsiteId = 2, PageId = 3,
-                ContentType = 5, Index = 2, ContentSlug = "hero",
+                ContentType = "text-block", Index = 2, ContentSlug = "hero",
                 ContentValue = "<h1>Hello</h1>"
             };
 
@@ -31,7 +31,7 @@ namespace Dedalo.Tests.Domain.Mappers
             Assert.Equal(1, model.ContentId);
             Assert.Equal(2, model.WebsiteId);
             Assert.Equal(3, model.PageId);
-            Assert.Equal(5, model.ContentType);
+            Assert.Equal("text-block", model.ContentType);
             Assert.Equal(2, model.Index);
             Assert.Equal("hero", model.ContentSlug);
             Assert.Equal("<h1>Hello</h1>", model.ContentValue);
@@ -58,7 +58,7 @@ namespace Dedalo.Tests.Domain.Mappers
         {
             var dto = new ContentInsertInfo
             {
-                WebsiteId = 2, PageId = 3, ContentType = 1,
+                WebsiteId = 2, PageId = 3, ContentType = "image",
                 Index = 0, ContentSlug = "banner", ContentValue = "Welcome"
             };
 
@@ -75,7 +75,7 @@ namespace Dedalo.Tests.Domain.Mappers
         {
             var dto = new ContentUpdateInfo
             {
-                ContentId = 1, ContentType = 2, Index = 3,
+                ContentId = 1, ContentType = "video", Index = 3,
                 ContentSlug = "new-slug", ContentValue = "New Value"
             };
 
@@ -93,7 +93,7 @@ namespace Dedalo.Tests.Domain.Mappers
             var model = new ContentModel
             {
                 ContentId = 1, WebsiteId = 2, PageId = 3,
-                ContentType = 1, Index = 0, ContentSlug = "hero",
+                ContentType = "heading", Index = 0, ContentSlug = "hero",
                 ContentValue = "text"
             };
 

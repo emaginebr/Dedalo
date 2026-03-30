@@ -24,6 +24,7 @@ namespace Dedalo.Infra.Mappers
             CreateMap<WebsiteInsertInfo, WebsiteModel>()
                 .ForMember(d => d.WebsiteId, opt => opt.Ignore())
                 .ForMember(d => d.UserId, opt => opt.Ignore())
+                .ForMember(d => d.WebsiteSlug, opt => opt.Ignore())
                 .ForMember(d => d.LogoUrl, opt => opt.Ignore())
                 .ForMember(d => d.Status, opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())

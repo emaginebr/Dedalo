@@ -29,6 +29,15 @@ namespace Dedalo.API.Controllers
             _mapper = mapper;
         }
 
+        [HttpGet("/page")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ListPublic([FromQuery] string websiteSlug, [FromQuery] string domain)
+        {
+            var models = await _pageService.ListPublicAsync(websiteSlug, domain);
+            var result = models.Select(m => _mapper.Map<PageInfo>(m));
+            return Ok(result);
+        }
+
         [HttpGet("/page/{pageSlug}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetBySlug(string pageSlug, [FromQuery] string websiteSlug, [FromQuery] string domain)

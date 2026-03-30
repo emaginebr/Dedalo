@@ -51,6 +51,14 @@ namespace Dedalo.Domain.Services
             return await _pageRepository.ListByWebsiteAsync(websiteId);
         }
 
+        public async Task<IEnumerable<PageModel>> ListPublicAsync(string websiteSlug, string domain)
+        {
+            if (string.IsNullOrWhiteSpace(websiteSlug) && string.IsNullOrWhiteSpace(domain))
+                throw new Exception("Website slug or domain is required");
+
+            return await _pageRepository.ListByWebsiteSlugOrDomainAsync(websiteSlug, domain);
+        }
+
         public async Task<PageModel> InsertAsync(PageInsertInfo page, long userId)
         {
             var website = await _websiteRepository.GetByIdAsync(page.WebsiteId);

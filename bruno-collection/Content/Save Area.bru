@@ -1,0 +1,35 @@
+meta {
+  name: Save Area
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/website/{{websiteId}}/page/{{pageId}}/content/area
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "contentSlug": "hero",
+    "items": [
+      {
+        "contentId": 0,
+        "contentType": "heading",
+        "index": 0,
+        "contentValue": "<h1>Title</h1>"
+      },
+      {
+        "contentId": 0,
+        "contentType": "text-block",
+        "index": 1,
+        "contentValue": "Subtitle text"
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  websiteId: 1
+}

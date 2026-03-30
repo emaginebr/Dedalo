@@ -66,8 +66,12 @@ namespace Dedalo.Domain.Services
         {
             var model = _mapper.Map<WebsiteModel>(website);
             model.SetOwner(userId);
+            model.GenerateSlug(website.Name);
             model.Status = WebsiteStatusEnum.Active;
             model.MarkCreated();
+
+            await ValidateSlugUniqueAsync(model.WebsiteSlug);
+            await ValidateDomainUniqueAsync(model.CustomDomain);
 
             return await _websiteRepository.InsertAsync(model);
         }
@@ -80,9 +84,33 @@ namespace Dedalo.Domain.Services
 
             existing.ValidateOwnership(userId);
             _mapper.Map(website, existing);
+            existing.EnsureSlug();
             existing.MarkUpdated();
 
+            await ValidateSlugUniqueAsync(existing.WebsiteSlug, existing.WebsiteId);
+            await ValidateDomainUniqueAsync(existing.CustomDomain, existing.WebsiteId);
+
             return await _websiteRepository.UpdateAsync(existing);
+        }
+
+        private async Task ValidateSlugUniqueAsync(string slug, long? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                return;
+
+            var found = await _websiteRepository.GetBySlugAsync(slug);
+            if (found != null && found.WebsiteId != excludeId)
+                throw new Exception("A website with this slug already exists");
+        }
+
+        private async Task ValidateDomainUniqueAsync(string domain, long? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(domain))
+                return;
+
+            var found = await _websiteRepository.GetByDomainAsync(domain);
+            if (found != null && found.WebsiteId != excludeId)
+                throw new Exception("A website with this domain already exists");
         }
 
         public async Task UpdateLogoAsync(long websiteId, string logoUrl, long userId)
@@ -95,14 +123,5 @@ namespace Dedalo.Domain.Services
             await _websiteRepository.UpdateLogoAsync(websiteId, logoUrl);
         }
 
-        public async Task DeleteAsync(long websiteId, long userId)
-        {
-            var existing = await _websiteRepository.GetByIdAsync(websiteId);
-            if (existing == null)
-                throw new Exception("Website not found");
-
-            existing.ValidateOwnership(userId);
-            await _websiteRepository.DeleteAsync(websiteId);
-        }
     }
 }

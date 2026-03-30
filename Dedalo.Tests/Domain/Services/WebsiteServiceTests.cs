@@ -130,8 +130,8 @@ namespace Dedalo.Tests.Domain.Services
         [Fact]
         public async Task InsertAsync_SetsOwnerAndStatus_ReturnsModel()
         {
-            var dto = new WebsiteInsertInfo { Name = "My Site", WebsiteSlug = "my-site" };
-            var model = new WebsiteModel { Name = "My Site", WebsiteSlug = "my-site" };
+            var dto = new WebsiteInsertInfo { Name = "My Site" };
+            var model = new WebsiteModel { Name = "My Site" };
 
             _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
             _websiteRepository.Setup(r => r.InsertAsync(It.IsAny<WebsiteModel>()))
@@ -142,6 +142,7 @@ namespace Dedalo.Tests.Domain.Services
             Assert.Equal(10, result.UserId);
             Assert.Equal(WebsiteStatusEnum.Active, result.Status);
             Assert.Equal(1, result.WebsiteId);
+            Assert.Equal("my-site", result.WebsiteSlug);
         }
 
         // -- UpdateAsync --
@@ -179,34 +180,82 @@ namespace Dedalo.Tests.Domain.Services
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.UpdateAsync(new WebsiteUpdateInfo { WebsiteId = 1 }, 999));
         }
 
-        // -- DeleteAsync --
+        // -- Slug Uniqueness --
 
         [Fact]
-        public async Task DeleteAsync_Deletes_WhenOwnerMatches()
+        public async Task InsertAsync_Throws_WhenSlugAlreadyExists()
         {
-            var existing = new WebsiteModel { WebsiteId = 1, UserId = 10 };
-            _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+            var dto = new WebsiteInsertInfo { Name = "My Site" };
+            var model = new WebsiteModel { Name = "My Site" };
+            var existing = new WebsiteModel { WebsiteId = 99, WebsiteSlug = "my-site" };
 
-            await _service.DeleteAsync(1, 10);
+            _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
+            _websiteRepository.Setup(r => r.GetBySlugAsync("my-site")).ReturnsAsync(existing);
 
-            _websiteRepository.Verify(r => r.DeleteAsync(1), Times.Once);
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.InsertAsync(dto, 10));
+            Assert.Contains("slug", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
-        public async Task DeleteAsync_Throws_WhenNotFound()
+        public async Task UpdateAsync_Throws_WhenSlugTakenByAnother()
         {
-            _websiteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((WebsiteModel)null);
+            var current = new WebsiteModel { WebsiteId = 1, UserId = 10, Name = "Old", WebsiteSlug = "old" };
+            var another = new WebsiteModel { WebsiteId = 2, WebsiteSlug = "taken-slug" };
+            var dto = new WebsiteUpdateInfo { WebsiteId = 1, WebsiteSlug = "taken-slug", Name = "Old" };
 
-            await Assert.ThrowsAsync<Exception>(() => _service.DeleteAsync(99, 10));
+            _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(current);
+            _mapper.Setup(m => m.Map(dto, current)).Callback(() => current.WebsiteSlug = "taken-slug");
+            _websiteRepository.Setup(r => r.GetBySlugAsync("taken-slug")).ReturnsAsync(another);
+
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.UpdateAsync(dto, 10));
+            Assert.Contains("slug", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
-        public async Task DeleteAsync_ThrowsUnauthorized_WhenOwnerMismatch()
+        public async Task UpdateAsync_AllowsSameSlugForSameWebsite()
         {
-            var existing = new WebsiteModel { WebsiteId = 1, UserId = 10 };
-            _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+            var current = new WebsiteModel { WebsiteId = 1, UserId = 10, Name = "Site", WebsiteSlug = "my-slug" };
+            var dto = new WebsiteUpdateInfo { WebsiteId = 1, WebsiteSlug = "my-slug", Name = "Site" };
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.DeleteAsync(1, 999));
+            _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(current);
+            _mapper.Setup(m => m.Map(dto, current));
+            _websiteRepository.Setup(r => r.GetBySlugAsync("my-slug")).ReturnsAsync(current);
+            _websiteRepository.Setup(r => r.UpdateAsync(current)).ReturnsAsync(current);
+
+            var result = await _service.UpdateAsync(dto, 10);
+
+            Assert.NotNull(result);
+        }
+
+        // -- Domain Uniqueness --
+
+        [Fact]
+        public async Task InsertAsync_Throws_WhenDomainAlreadyExists()
+        {
+            var dto = new WebsiteInsertInfo { Name = "My Site", CustomDomain = "taken.com" };
+            var model = new WebsiteModel { Name = "My Site", CustomDomain = "taken.com" };
+            var existing = new WebsiteModel { WebsiteId = 99, CustomDomain = "taken.com" };
+
+            _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
+            _websiteRepository.Setup(r => r.GetByDomainAsync("taken.com")).ReturnsAsync(existing);
+
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.InsertAsync(dto, 10));
+            Assert.Contains("domain", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public async Task InsertAsync_AllowsEmptyDomain()
+        {
+            var dto = new WebsiteInsertInfo { Name = "My Site" };
+            var model = new WebsiteModel { Name = "My Site" };
+
+            _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
+            _websiteRepository.Setup(r => r.InsertAsync(It.IsAny<WebsiteModel>()))
+                .ReturnsAsync((WebsiteModel m) => { m.WebsiteId = 1; return m; });
+
+            var result = await _service.InsertAsync(dto, 10);
+
+            Assert.Equal(1, result.WebsiteId);
         }
     }
 }

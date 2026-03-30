@@ -1,0 +1,20 @@
+meta {
+  name: Update Content
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/website/{{websiteId}}/page/{{pageId}}/content/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "contentType": "heading",
+    "index": 0,
+    "contentSlug": "hero",
+    "contentValue": "<h1>Welcome Updated</h1>"
+  }
+}

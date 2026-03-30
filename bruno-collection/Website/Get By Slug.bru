@@ -1,0 +1,15 @@
+meta {
+  name: Get By Slug (Public)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/website/slug/meu-site
+  body: none
+  auth: none
+}
+
+headers {
+  X-Tenant-Id: emagine
+}

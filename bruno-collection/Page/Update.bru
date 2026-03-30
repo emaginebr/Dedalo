@@ -1,0 +1,19 @@
+meta {
+  name: Update Page
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/website/{{websiteId}}/page/{{pageId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "pageSlug": "about",
+    "templatePageSlug": "default",
+    "name": "About Us"
+  }
+}

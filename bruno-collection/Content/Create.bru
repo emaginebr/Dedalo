@@ -1,0 +1,20 @@
+meta {
+  name: Create Content
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/website/{{websiteId}}/page/{{pageId}}/content
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "contentType": "heading",
+    "index": 0,
+    "contentSlug": "hero",
+    "contentValue": "<h1>Welcome</h1>"
+  }
+}

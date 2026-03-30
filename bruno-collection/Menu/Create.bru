@@ -1,0 +1,21 @@
+meta {
+  name: Create Menu
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/website/{{websiteId}}/menu
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "parentId": null,
+    "name": "Home",
+    "linkType": 3,
+    "externalLink": "",
+    "pageId": 1
+  }
+}

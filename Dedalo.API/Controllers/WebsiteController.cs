@@ -80,13 +80,5 @@ namespace Dedalo.API.Controllers
             var model = await _websiteService.UpdateAsync(website, user.UserId);
             return Ok(_mapper.Map<WebsiteInfo>(model));
         }
-
-        [HttpDelete("{websiteId}")]
-        public async Task<IActionResult> Delete(long websiteId)
-        {
-            var user = _userClient.GetUserInSession(HttpContext);
-            await _websiteService.DeleteAsync(websiteId, user.UserId);
-            return NoContent();
-        }
     }
 }

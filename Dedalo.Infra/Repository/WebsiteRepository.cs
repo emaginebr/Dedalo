@@ -81,14 +81,5 @@ namespace Dedalo.Infra.Repository
             }
         }
 
-        public async Task DeleteAsync(long id)
-        {
-            var row = await _context.Websites.FindAsync(id);
-            if (row != null)
-            {
-                _context.Websites.Remove(row);
-                await _context.SaveChangesAsync();
-            }
-        }
     }
 }

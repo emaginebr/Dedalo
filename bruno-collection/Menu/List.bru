@@ -1,0 +1,19 @@
+meta {
+  name: List Menus
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/website/{{websiteId}}/menu
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+vars:pre-request {
+  websiteId: 1
+}

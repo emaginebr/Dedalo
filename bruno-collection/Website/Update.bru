@@ -1,0 +1,26 @@
+meta {
+  name: Update Website
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/website/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+body:json {
+  {
+    "websiteSlug": "meu-site",
+    "templateSlug": "default",
+    "name": "Meu Site Atualizado2",
+    "domainType": 1,
+    "customDomain": "",
+    "status": 1
+  }
+}

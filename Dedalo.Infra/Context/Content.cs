@@ -10,7 +10,7 @@ public partial class Content
 
     public long PageId { get; set; }
 
-    public int ContentType { get; set; }
+    public string ContentType { get; set; }
 
     public int Index { get; set; }
 
