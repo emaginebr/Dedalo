@@ -1,6 +1,7 @@
 using AutoMapper;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Services;
+using Dedalo.Domain.Validators;
 using Dedalo.DTO.Website;
 using Dedalo.Infra.Interfaces.Repository;
 using Moq;
@@ -16,6 +17,7 @@ namespace Dedalo.Tests.Domain.Services
     {
         private readonly Mock<IWebsiteRepository<WebsiteModel>> _websiteRepository;
         private readonly Mock<IPageRepository<PageModel>> _pageRepository;
+        private readonly Mock<IMenuRepository<MenuModel>> _menuRepository;
         private readonly Mock<IMapper> _mapper;
         private readonly WebsiteService _service;
 
@@ -23,8 +25,16 @@ namespace Dedalo.Tests.Domain.Services
         {
             _websiteRepository = new Mock<IWebsiteRepository<WebsiteModel>>();
             _pageRepository = new Mock<IPageRepository<PageModel>>();
+            _menuRepository = new Mock<IMenuRepository<MenuModel>>();
             _mapper = new Mock<IMapper>();
-            _service = new WebsiteService(_websiteRepository.Object, _pageRepository.Object, _mapper.Object);
+            _service = new WebsiteService(
+                _websiteRepository.Object,
+                _pageRepository.Object,
+                _menuRepository.Object,
+                new WebsiteInsertValidator(),
+                new WebsiteUpdateValidator(),
+                _mapper.Object
+            );
         }
 
         // -- GetByIdAsync --
@@ -140,14 +150,16 @@ namespace Dedalo.Tests.Domain.Services
         [Fact]
         public async Task InsertAsync_SetsOwnerAndStatus_ReturnsModel()
         {
-            var dto = new WebsiteInsertInfo { Name = "My Site" };
+            var dto = new WebsiteInsertInfo { Name = "My Site", DomainType = DomainTypeEnum.Subdomain };
             var model = new WebsiteModel { Name = "My Site" };
 
             _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
             _websiteRepository.Setup(r => r.InsertAsync(It.IsAny<WebsiteModel>()))
                 .ReturnsAsync((WebsiteModel m) => { m.WebsiteId = 1; return m; });
             _pageRepository.Setup(r => r.InsertAsync(It.IsAny<PageModel>()))
-                .ReturnsAsync((PageModel p) => p);
+                .ReturnsAsync((PageModel p) => { p.PageId = 10; return p; });
+            _menuRepository.Setup(r => r.InsertAsync(It.IsAny<MenuModel>()))
+                .ReturnsAsync((MenuModel m) => m);
 
             var result = await _service.InsertAsync(dto, 10);
 
@@ -158,6 +170,9 @@ namespace Dedalo.Tests.Domain.Services
             _pageRepository.Verify(r => r.InsertAsync(It.Is<PageModel>(p =>
                 p.WebsiteId == 1 && p.PageSlug == "home" && p.Name == "Home"
             )), Times.Once);
+            _menuRepository.Verify(r => r.InsertAsync(It.Is<MenuModel>(m =>
+                m.WebsiteId == 1 && m.Name == "Home" && m.PageId == 10
+            )), Times.Once);
         }
 
         // -- UpdateAsync --
@@ -166,7 +181,7 @@ namespace Dedalo.Tests.Domain.Services
         public async Task UpdateAsync_UpdatesExisting_WhenOwnerMatches()
         {
             var existing = new WebsiteModel { WebsiteId = 1, UserId = 10, Name = "Old" };
-            var dto = new WebsiteUpdateInfo { WebsiteId = 1, Name = "New" };
+            var dto = new WebsiteUpdateInfo { WebsiteId = 1, Name = "New", DomainType = DomainTypeEnum.Subdomain, Status = WebsiteStatusEnum.Active };
 
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
             _mapper.Setup(m => m.Map(dto, existing));
@@ -183,7 +198,7 @@ namespace Dedalo.Tests.Domain.Services
         {
             _websiteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((WebsiteModel)null);
 
-            await Assert.ThrowsAsync<Exception>(() => _service.UpdateAsync(new WebsiteUpdateInfo { WebsiteId = 99 }, 10));
+            await Assert.ThrowsAsync<Exception>(() => _service.UpdateAsync(new WebsiteUpdateInfo { WebsiteId = 99, Name = "Test", DomainType = DomainTypeEnum.Subdomain, Status = WebsiteStatusEnum.Active }, 10));
         }
 
         [Fact]
@@ -192,7 +207,7 @@ namespace Dedalo.Tests.Domain.Services
             var existing = new WebsiteModel { WebsiteId = 1, UserId = 10 };
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.UpdateAsync(new WebsiteUpdateInfo { WebsiteId = 1 }, 999));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.UpdateAsync(new WebsiteUpdateInfo { WebsiteId = 1, Name = "Test", DomainType = DomainTypeEnum.Subdomain, Status = WebsiteStatusEnum.Active }, 999));
         }
 
         // -- Slug Uniqueness --
@@ -200,7 +215,7 @@ namespace Dedalo.Tests.Domain.Services
         [Fact]
         public async Task InsertAsync_Throws_WhenSlugAlreadyExists()
         {
-            var dto = new WebsiteInsertInfo { Name = "My Site" };
+            var dto = new WebsiteInsertInfo { Name = "My Site", DomainType = DomainTypeEnum.Subdomain };
             var model = new WebsiteModel { Name = "My Site" };
             var existing = new WebsiteModel { WebsiteId = 99, WebsiteSlug = "my-site" };
 
@@ -216,7 +231,7 @@ namespace Dedalo.Tests.Domain.Services
         {
             var current = new WebsiteModel { WebsiteId = 1, UserId = 10, Name = "Old", WebsiteSlug = "old" };
             var another = new WebsiteModel { WebsiteId = 2, WebsiteSlug = "taken-slug" };
-            var dto = new WebsiteUpdateInfo { WebsiteId = 1, WebsiteSlug = "taken-slug", Name = "Old" };
+            var dto = new WebsiteUpdateInfo { WebsiteId = 1, WebsiteSlug = "taken-slug", Name = "Old", DomainType = DomainTypeEnum.Subdomain, Status = WebsiteStatusEnum.Active };
 
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(current);
             _mapper.Setup(m => m.Map(dto, current)).Callback(() => current.WebsiteSlug = "taken-slug");
@@ -230,7 +245,7 @@ namespace Dedalo.Tests.Domain.Services
         public async Task UpdateAsync_AllowsSameSlugForSameWebsite()
         {
             var current = new WebsiteModel { WebsiteId = 1, UserId = 10, Name = "Site", WebsiteSlug = "my-slug" };
-            var dto = new WebsiteUpdateInfo { WebsiteId = 1, WebsiteSlug = "my-slug", Name = "Site" };
+            var dto = new WebsiteUpdateInfo { WebsiteId = 1, WebsiteSlug = "my-slug", Name = "Site", DomainType = DomainTypeEnum.Subdomain, Status = WebsiteStatusEnum.Active };
 
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(current);
             _mapper.Setup(m => m.Map(dto, current));
@@ -247,7 +262,7 @@ namespace Dedalo.Tests.Domain.Services
         [Fact]
         public async Task InsertAsync_Throws_WhenDomainAlreadyExists()
         {
-            var dto = new WebsiteInsertInfo { Name = "My Site", CustomDomain = "taken.com" };
+            var dto = new WebsiteInsertInfo { Name = "My Site", DomainType = DomainTypeEnum.CustomDomain, CustomDomain = "taken.com" };
             var model = new WebsiteModel { Name = "My Site", CustomDomain = "taken.com" };
             var existing = new WebsiteModel { WebsiteId = 99, CustomDomain = "taken.com" };
 
@@ -261,14 +276,16 @@ namespace Dedalo.Tests.Domain.Services
         [Fact]
         public async Task InsertAsync_AllowsEmptyDomain()
         {
-            var dto = new WebsiteInsertInfo { Name = "My Site" };
+            var dto = new WebsiteInsertInfo { Name = "My Site", DomainType = DomainTypeEnum.Subdomain };
             var model = new WebsiteModel { Name = "My Site" };
 
             _mapper.Setup(m => m.Map<WebsiteModel>(dto)).Returns(model);
             _websiteRepository.Setup(r => r.InsertAsync(It.IsAny<WebsiteModel>()))
                 .ReturnsAsync((WebsiteModel m) => { m.WebsiteId = 1; return m; });
             _pageRepository.Setup(r => r.InsertAsync(It.IsAny<PageModel>()))
-                .ReturnsAsync((PageModel p) => p);
+                .ReturnsAsync((PageModel p) => { p.PageId = 10; return p; });
+            _menuRepository.Setup(r => r.InsertAsync(It.IsAny<MenuModel>()))
+                .ReturnsAsync((MenuModel m) => m);
 
             var result = await _service.InsertAsync(dto, 10);
 

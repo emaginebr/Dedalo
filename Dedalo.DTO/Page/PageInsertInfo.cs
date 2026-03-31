@@ -6,8 +6,6 @@ namespace Dedalo.DTO.Page
     {
         [JsonPropertyName("websiteId")]
         public long WebsiteId { get; set; }
-        [JsonPropertyName("pageSlug")]
-        public string PageSlug { get; set; }
         [JsonPropertyName("templatePageSlug")]
         public string TemplatePageSlug { get; set; }
         [JsonPropertyName("name")]

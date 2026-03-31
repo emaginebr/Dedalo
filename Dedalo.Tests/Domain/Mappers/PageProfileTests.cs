@@ -59,14 +59,14 @@ namespace Dedalo.Tests.Domain.Mappers
         {
             var dto = new PageInsertInfo
             {
-                WebsiteId = 2, PageSlug = "contact", Name = "Contact"
+                WebsiteId = 2, Name = "Contact"
             };
 
             var model = _mapper.Map<PageModel>(dto);
 
             Assert.Equal(0, model.PageId);
             Assert.Equal(2, model.WebsiteId);
-            Assert.Equal("contact", model.PageSlug);
+            Assert.Null(model.PageSlug);
         }
 
         [Fact]

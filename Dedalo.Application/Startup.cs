@@ -4,6 +4,12 @@ using Dedalo.Infra.Repository;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Services;
 using Dedalo.Domain.Interfaces;
+using Dedalo.Domain.Validators;
+using Dedalo.DTO.Website;
+using Dedalo.DTO.Page;
+using Dedalo.DTO.Menu;
+using Dedalo.DTO.Content;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using NAuth.ACL;
 using NAuth.ACL.Interfaces;
@@ -52,6 +58,18 @@ namespace Dedalo.Application
             injectDependency(typeof(IFileClient), typeof(FileClient), services, scoped);
             injectDependency(typeof(IStringClient), typeof(StringClient), services, scoped);
             injectDependency(typeof(IDocumentClient), typeof(DocumentClient), services, scoped);
+            #endregion
+
+            #region Validators
+            services.AddScoped<IValidator<WebsiteInsertInfo>, WebsiteInsertValidator>();
+            services.AddScoped<IValidator<WebsiteUpdateInfo>, WebsiteUpdateValidator>();
+            services.AddScoped<IValidator<PageInsertInfo>, PageInsertValidator>();
+            services.AddScoped<IValidator<PageUpdateInfo>, PageUpdateValidator>();
+            services.AddScoped<IValidator<MenuInsertInfo>, MenuInsertValidator>();
+            services.AddScoped<IValidator<MenuUpdateInfo>, MenuUpdateValidator>();
+            services.AddScoped<IValidator<ContentInsertInfo>, ContentInsertValidator>();
+            services.AddScoped<IValidator<ContentUpdateInfo>, ContentUpdateValidator>();
+            services.AddScoped<IValidator<ContentAreaInfo>, ContentAreaValidator>();
             #endregion
 
             #region Service

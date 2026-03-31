@@ -2,7 +2,9 @@ using AutoMapper;
 using Dedalo.Infra.Interfaces.Repository;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Interfaces;
+using Dedalo.Domain.Validators;
 using Dedalo.DTO.Page;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +16,22 @@ namespace Dedalo.Domain.Services
     {
         private readonly IPageRepository<PageModel> _pageRepository;
         private readonly IWebsiteRepository<WebsiteModel> _websiteRepository;
+        private readonly IValidator<PageInsertInfo> _insertValidator;
+        private readonly IValidator<PageUpdateInfo> _updateValidator;
         private readonly IMapper _mapper;
 
         public PageService(
             IPageRepository<PageModel> pageRepository,
             IWebsiteRepository<WebsiteModel> websiteRepository,
+            IValidator<PageInsertInfo> insertValidator,
+            IValidator<PageUpdateInfo> updateValidator,
             IMapper mapper
         )
         {
             _pageRepository = pageRepository;
             _websiteRepository = websiteRepository;
+            _insertValidator = insertValidator;
+            _updateValidator = updateValidator;
             _mapper = mapper;
         }
 
@@ -58,12 +66,14 @@ namespace Dedalo.Domain.Services
 
         public async Task<PageModel> InsertAsync(PageInsertInfo page, long userId)
         {
+            ValidationHelper.Validate(_insertValidator, page);
             var website = await _websiteRepository.GetByIdAsync(page.WebsiteId);
             if (website == null)
                 throw new Exception("Website not found");
             website.ValidateOwnership(userId);
 
             var model = _mapper.Map<PageModel>(page);
+            model.GenerateSlug(page.Name);
             model.MarkCreated();
 
             return await _pageRepository.InsertAsync(model);
@@ -71,6 +81,7 @@ namespace Dedalo.Domain.Services
 
         public async Task<PageModel> UpdateAsync(PageUpdateInfo page, long userId)
         {
+            ValidationHelper.Validate(_updateValidator, page);
             var existing = await _pageRepository.GetByIdAsync(page.PageId);
             if (existing == null)
                 throw new Exception("Page not found");

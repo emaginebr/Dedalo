@@ -43,6 +43,10 @@ namespace Dedalo.API
             services.AddControllers(options =>
             {
                 options.Filters.Add<GlobalExceptionFilter>();
+            })
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
             });
             services.AddHealthChecks();
             services.AddSwaggerGen(c =>

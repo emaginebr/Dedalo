@@ -2,7 +2,9 @@ using AutoMapper;
 using Dedalo.Infra.Interfaces.Repository;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Interfaces;
+using Dedalo.Domain.Validators;
 using Dedalo.DTO.Menu;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +16,22 @@ namespace Dedalo.Domain.Services
     {
         private readonly IMenuRepository<MenuModel> _menuRepository;
         private readonly IWebsiteRepository<WebsiteModel> _websiteRepository;
+        private readonly IValidator<MenuInsertInfo> _insertValidator;
+        private readonly IValidator<MenuUpdateInfo> _updateValidator;
         private readonly IMapper _mapper;
 
         public MenuService(
             IMenuRepository<MenuModel> menuRepository,
             IWebsiteRepository<WebsiteModel> websiteRepository,
+            IValidator<MenuInsertInfo> insertValidator,
+            IValidator<MenuUpdateInfo> updateValidator,
             IMapper mapper
         )
         {
             _menuRepository = menuRepository;
             _websiteRepository = websiteRepository;
+            _insertValidator = insertValidator;
+            _updateValidator = updateValidator;
             _mapper = mapper;
         }
 
@@ -47,6 +55,7 @@ namespace Dedalo.Domain.Services
 
         public async Task<MenuModel> InsertAsync(MenuInsertInfo menu, long userId)
         {
+            ValidationHelper.Validate(_insertValidator, menu);
             var website = await _websiteRepository.GetByIdAsync(menu.WebsiteId);
             if (website == null)
                 throw new Exception("Website not found");
@@ -60,6 +69,7 @@ namespace Dedalo.Domain.Services
 
         public async Task<MenuModel> UpdateAsync(MenuUpdateInfo menu, long userId)
         {
+            ValidationHelper.Validate(_updateValidator, menu);
             var existing = await _menuRepository.GetByIdAsync(menu.MenuId);
             if (existing == null)
                 throw new Exception("Menu not found");

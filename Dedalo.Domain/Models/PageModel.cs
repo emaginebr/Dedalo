@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Dedalo.Domain.Models
 {
@@ -14,6 +17,11 @@ namespace Dedalo.Domain.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
+        public void GenerateSlug(string name)
+        {
+            PageSlug = ToSlug(name);
+        }
+
         public void MarkCreated()
         {
             CreatedAt = DateTime.Now;
@@ -23,6 +31,26 @@ namespace Dedalo.Domain.Models
         public void MarkUpdated()
         {
             UpdatedAt = DateTime.Now;
+        }
+
+        private static string ToSlug(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            var normalized = text.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+            foreach (var c in normalized)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+
+            var slug = sb.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+            slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+            slug = Regex.Replace(slug, @"[\s-]+", "-");
+            slug = slug.Trim('-');
+            return slug;
         }
     }
 }

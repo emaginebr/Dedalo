@@ -2,7 +2,10 @@ using AutoMapper;
 using Dedalo.Infra.Interfaces.Repository;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Interfaces;
+using Dedalo.Domain.Validators;
+using Dedalo.DTO.Menu;
 using Dedalo.DTO.Website;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,16 +16,25 @@ namespace Dedalo.Domain.Services
     {
         private readonly IWebsiteRepository<WebsiteModel> _websiteRepository;
         private readonly IPageRepository<PageModel> _pageRepository;
+        private readonly IMenuRepository<MenuModel> _menuRepository;
+        private readonly IValidator<WebsiteInsertInfo> _insertValidator;
+        private readonly IValidator<WebsiteUpdateInfo> _updateValidator;
         private readonly IMapper _mapper;
 
         public WebsiteService(
             IWebsiteRepository<WebsiteModel> websiteRepository,
             IPageRepository<PageModel> pageRepository,
+            IMenuRepository<MenuModel> menuRepository,
+            IValidator<WebsiteInsertInfo> insertValidator,
+            IValidator<WebsiteUpdateInfo> updateValidator,
             IMapper mapper
         )
         {
             _websiteRepository = websiteRepository;
             _pageRepository = pageRepository;
+            _menuRepository = menuRepository;
+            _insertValidator = insertValidator;
+            _updateValidator = updateValidator;
             _mapper = mapper;
         }
 
@@ -63,6 +75,7 @@ namespace Dedalo.Domain.Services
 
         public async Task<WebsiteModel> InsertAsync(WebsiteInsertInfo website, long userId)
         {
+            ValidationHelper.Validate(_insertValidator, website);
             var model = _mapper.Map<WebsiteModel>(website);
             model.SetOwner(userId);
             model.GenerateSlug(website.Name);
@@ -81,13 +94,24 @@ namespace Dedalo.Domain.Services
                 Name = "Home"
             };
             homePage.MarkCreated();
-            await _pageRepository.InsertAsync(homePage);
+            var createdPage = await _pageRepository.InsertAsync(homePage);
+
+            var homeMenu = new MenuModel
+            {
+                WebsiteId = created.WebsiteId,
+                Name = "Home",
+                LinkType = LinkTypeEnum.InternalPage,
+                PageId = createdPage.PageId
+            };
+            homeMenu.MarkCreated();
+            await _menuRepository.InsertAsync(homeMenu);
 
             return created;
         }
 
         public async Task<WebsiteModel> UpdateAsync(WebsiteUpdateInfo website, long userId)
         {
+            ValidationHelper.Validate(_updateValidator, website);
             var existing = await _websiteRepository.GetByIdAsync(website.WebsiteId);
             if (existing == null)
                 throw new Exception("Website not found");

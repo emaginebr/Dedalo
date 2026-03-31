@@ -1,7 +1,9 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 
 namespace Dedalo.API.Filters
 {
@@ -19,6 +21,22 @@ namespace Dedalo.API.Filters
             if (context.Exception is UnauthorizedAccessException)
             {
                 context.Result = new ForbidResult();
+                context.ExceptionHandled = true;
+                return;
+            }
+
+            if (context.Exception is ValidationException validationException)
+            {
+                var errors = validationException.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+
+                context.Result = new BadRequestObjectResult(new
+                {
+                    title = "Validation failed",
+                    status = 400,
+                    errors
+                });
                 context.ExceptionHandled = true;
                 return;
             }

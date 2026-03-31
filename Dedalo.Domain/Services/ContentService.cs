@@ -2,7 +2,9 @@ using AutoMapper;
 using Dedalo.Infra.Interfaces.Repository;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Interfaces;
+using Dedalo.Domain.Validators;
 using Dedalo.DTO.Content;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,24 +16,31 @@ namespace Dedalo.Domain.Services
     {
         private readonly IContentRepository<ContentModel> _contentRepository;
         private readonly IWebsiteRepository<WebsiteModel> _websiteRepository;
+        private readonly IValidator<ContentInsertInfo> _insertValidator;
+        private readonly IValidator<ContentUpdateInfo> _updateValidator;
+        private readonly IValidator<ContentAreaInfo> _areaValidator;
         private readonly IMapper _mapper;
 
         public ContentService(
             IContentRepository<ContentModel> contentRepository,
             IWebsiteRepository<WebsiteModel> websiteRepository,
+            IValidator<ContentInsertInfo> insertValidator,
+            IValidator<ContentUpdateInfo> updateValidator,
+            IValidator<ContentAreaInfo> areaValidator,
             IMapper mapper
         )
         {
             _contentRepository = contentRepository;
             _websiteRepository = websiteRepository;
+            _insertValidator = insertValidator;
+            _updateValidator = updateValidator;
+            _areaValidator = areaValidator;
             _mapper = mapper;
         }
 
         public async Task<IEnumerable<ContentModel>> SaveAreaAsync(ContentAreaInfo area, long userId)
         {
-            if (string.IsNullOrWhiteSpace(area.ContentSlug))
-                throw new Exception("ContentSlug is required");
-
+            ValidationHelper.Validate(_areaValidator, area);
             var website = await _websiteRepository.GetByIdAsync(area.WebsiteId);
             if (website == null)
                 throw new Exception("Website not found");
@@ -105,6 +114,7 @@ namespace Dedalo.Domain.Services
 
         public async Task<ContentModel> InsertAsync(ContentInsertInfo content, long userId)
         {
+            ValidationHelper.Validate(_insertValidator, content);
             var website = await _websiteRepository.GetByIdAsync(content.WebsiteId);
             if (website == null)
                 throw new Exception("Website not found");
@@ -118,6 +128,7 @@ namespace Dedalo.Domain.Services
 
         public async Task<ContentModel> UpdateAsync(ContentUpdateInfo content, long userId)
         {
+            ValidationHelper.Validate(_updateValidator, content);
             var existing = await _contentRepository.GetByIdAsync(content.ContentId);
             if (existing == null)
                 throw new Exception("Content not found");

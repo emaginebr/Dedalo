@@ -22,6 +22,7 @@ namespace Dedalo.Infra.Mappers
             // DTO -> Model
             CreateMap<PageInsertInfo, PageModel>()
                 .ForMember(d => d.PageId, opt => opt.Ignore())
+                .ForMember(d => d.PageSlug, opt => opt.Ignore())
                 .ForMember(d => d.Contents, opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.UpdatedAt, opt => opt.Ignore());

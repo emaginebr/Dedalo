@@ -1,6 +1,7 @@
 using AutoMapper;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Services;
+using Dedalo.Domain.Validators;
 using Dedalo.DTO.Content;
 using Dedalo.Infra.Interfaces.Repository;
 using Moq;
@@ -23,7 +24,14 @@ namespace Dedalo.Tests.Domain.Services
             _contentRepository = new Mock<IContentRepository<ContentModel>>();
             _websiteRepository = new Mock<IWebsiteRepository<WebsiteModel>>();
             _mapper = new Mock<IMapper>();
-            _service = new ContentService(_contentRepository.Object, _websiteRepository.Object, _mapper.Object);
+            _service = new ContentService(
+                _contentRepository.Object,
+                _websiteRepository.Object,
+                new ContentInsertValidator(),
+                new ContentUpdateValidator(),
+                new ContentAreaValidator(),
+                _mapper.Object
+            );
         }
 
         // -- GetByIdAsync --
@@ -99,7 +107,7 @@ namespace Dedalo.Tests.Domain.Services
         public async Task InsertAsync_CreatesContent_WhenOwnerMatches()
         {
             var website = new WebsiteModel { WebsiteId = 1, UserId = 10 };
-            var dto = new ContentInsertInfo { WebsiteId = 1, PageId = 1, ContentSlug = "hero" };
+            var dto = new ContentInsertInfo { WebsiteId = 1, PageId = 1, ContentType = "text", ContentSlug = "hero" };
             var model = new ContentModel { WebsiteId = 1, PageId = 1, ContentSlug = "hero" };
 
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(website);
@@ -118,7 +126,7 @@ namespace Dedalo.Tests.Domain.Services
             _websiteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((WebsiteModel)null);
 
             await Assert.ThrowsAsync<Exception>(() =>
-                _service.InsertAsync(new ContentInsertInfo { WebsiteId = 99 }, 10));
+                _service.InsertAsync(new ContentInsertInfo { WebsiteId = 99, ContentType = "text" }, 10));
         }
 
         [Fact]
@@ -128,7 +136,7 @@ namespace Dedalo.Tests.Domain.Services
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(website);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _service.InsertAsync(new ContentInsertInfo { WebsiteId = 1 }, 999));
+                _service.InsertAsync(new ContentInsertInfo { WebsiteId = 1, ContentType = "text" }, 999));
         }
 
         // -- UpdateAsync --
@@ -138,7 +146,7 @@ namespace Dedalo.Tests.Domain.Services
         {
             var existing = new ContentModel { ContentId = 1, WebsiteId = 1 };
             var website = new WebsiteModel { WebsiteId = 1, UserId = 10 };
-            var dto = new ContentUpdateInfo { ContentId = 1, ContentValue = "New Value" };
+            var dto = new ContentUpdateInfo { ContentId = 1, ContentType = "text", ContentValue = "New Value" };
 
             _contentRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(website);
@@ -157,7 +165,7 @@ namespace Dedalo.Tests.Domain.Services
             _contentRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((ContentModel)null);
 
             await Assert.ThrowsAsync<Exception>(() =>
-                _service.UpdateAsync(new ContentUpdateInfo { ContentId = 99 }, 10));
+                _service.UpdateAsync(new ContentUpdateInfo { ContentId = 99, ContentType = "text" }, 10));
         }
 
         // -- DeleteAsync --

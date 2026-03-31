@@ -1,6 +1,7 @@
 using AutoMapper;
 using Dedalo.Domain.Models;
 using Dedalo.Domain.Services;
+using Dedalo.Domain.Validators;
 using Dedalo.DTO.Menu;
 using Dedalo.Infra.Interfaces.Repository;
 using Moq;
@@ -23,7 +24,13 @@ namespace Dedalo.Tests.Domain.Services
             _menuRepository = new Mock<IMenuRepository<MenuModel>>();
             _websiteRepository = new Mock<IWebsiteRepository<WebsiteModel>>();
             _mapper = new Mock<IMapper>();
-            _service = new MenuService(_menuRepository.Object, _websiteRepository.Object, _mapper.Object);
+            _service = new MenuService(
+                _menuRepository.Object,
+                _websiteRepository.Object,
+                new MenuInsertValidator(),
+                new MenuUpdateValidator(),
+                _mapper.Object
+            );
         }
 
         // -- GetByIdAsync --
@@ -91,7 +98,7 @@ namespace Dedalo.Tests.Domain.Services
         public async Task InsertAsync_CreatesMenu_WhenOwnerMatches()
         {
             var website = new WebsiteModel { WebsiteId = 1, UserId = 10 };
-            var dto = new MenuInsertInfo { WebsiteId = 1, Name = "Home" };
+            var dto = new MenuInsertInfo { WebsiteId = 1, Name = "Home", LinkType = LinkTypeEnum.None };
             var model = new MenuModel { WebsiteId = 1, Name = "Home" };
 
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(website);
@@ -110,7 +117,7 @@ namespace Dedalo.Tests.Domain.Services
             _websiteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((WebsiteModel)null);
 
             await Assert.ThrowsAsync<Exception>(() =>
-                _service.InsertAsync(new MenuInsertInfo { WebsiteId = 99 }, 10));
+                _service.InsertAsync(new MenuInsertInfo { WebsiteId = 99, Name = "Test", LinkType = LinkTypeEnum.None }, 10));
         }
 
         [Fact]
@@ -120,7 +127,7 @@ namespace Dedalo.Tests.Domain.Services
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(website);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _service.InsertAsync(new MenuInsertInfo { WebsiteId = 1 }, 999));
+                _service.InsertAsync(new MenuInsertInfo { WebsiteId = 1, Name = "Test", LinkType = LinkTypeEnum.None }, 999));
         }
 
         // -- UpdateAsync --
@@ -130,7 +137,7 @@ namespace Dedalo.Tests.Domain.Services
         {
             var existing = new MenuModel { MenuId = 1, WebsiteId = 1 };
             var website = new WebsiteModel { WebsiteId = 1, UserId = 10 };
-            var dto = new MenuUpdateInfo { MenuId = 1, Name = "New" };
+            var dto = new MenuUpdateInfo { MenuId = 1, Name = "New", LinkType = LinkTypeEnum.None };
 
             _menuRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
             _websiteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(website);
@@ -149,7 +156,7 @@ namespace Dedalo.Tests.Domain.Services
             _menuRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((MenuModel)null);
 
             await Assert.ThrowsAsync<Exception>(() =>
-                _service.UpdateAsync(new MenuUpdateInfo { MenuId = 99 }, 10));
+                _service.UpdateAsync(new MenuUpdateInfo { MenuId = 99, Name = "Test", LinkType = LinkTypeEnum.None }, 10));
         }
 
         // -- DeleteAsync --
